@@ -24,18 +24,27 @@ link. It's designed to be lightweight and efficient, making it easy to integrate
   transitioning to a persistent data store (such as a relational database, NoSQL database, or external cache) would be
   necessary.
 
-- **Unique Shortened URLs for Each Original URL (Unless a Custom Alias is Used)**:  
-  In the current implementation, the POST request is idempotent for a given original URL. This means that once a URL has
-  been shortened using a hashed version of the original URL, the same shortened link will always be returned, regardless
-  of the user or session. This approach optimizes storage. While users can generate multiple shortened URLs for the same
-  original URL by specifying custom aliases, the system does not currently support generating different hashed URLs for
-  the same original link across multiple users or sessions when custom aliases are not provided. This limitation can be
-  addressed by extending the application to support user- or session-based URL generation, associating each shortened
-  URL with a user or session.
+- **Consistent Shortened URLs for Each Original Link (Unless a Custom Alias is Used)**:  
+  In the current implementation, shortening an original URL using a POST request will always return the same shortened
+  URL. This ensures that once a URL has been shortened, the same short link is provided for future requests, regardless
+  of the user or session, making the process efficient and reducing storage needs. While users have the option to create
+  multiple shortened URLs by specifying custom aliases, the system does not currently support generating different
+  shortened links for the same original URL across different sessions. To enable session-based URL generation, the
+  application could be extended to create unique short URLs for each user or session.
+
+- **Hashing Strategy**:
+  The current URL shortening implementation uses an MD5 hash of the original URL to generate a unique numeric value,
+  which is then encoded into a Base62 string. While this approach efficiently creates short, deterministic URLs, it is
+  not completely collision-free. Although the likelihood of collisions (where two different URLs generate the same
+  shortened link) is low, it is still possible, especially as the number of shortened URLs increases over time.
+  Additionally, the system currently limits shortened URLs to a fixed length of 8 characters to ensure consistency and
+  simplicity. However, this fixed length could become insufficient as the system scales and more unique URLs are
+  generated. Over time, the risk of collisions grows, and the fixed length may no longer provide adequate uniqueness.
 
 Despite these limitations, the architecture is designed to be flexible and can be extended without significant
-modifications. The application can be integrated with a database layer and support features such as user-based URL
-shortening.## Tech Stack
+modifications.
+
+## Tech Stack
 
 - **Kotlin**: 2.0+
 - **SDK**: 17.0+
@@ -56,12 +65,12 @@ This application follows a layered architecture that separates concerns and impr
     - **Dependency Injection**: Manual dependency injection module.
 
 - **Model**:
-    - **Exceptions**: Internal error models.
-    - **Domain Model Objects**: Data objects to encapsulate the data structure model.
+    - **Domain Model Objects**: Objects that represent entities in the domain and encapsulate related data and
+      behavior.
 
 - **Service**:
-    - **Business Logic**: Contains the core functionality for URL shortening and retrieving original URLs. This layer
-      interacts with the repository layer to fetch and store data.
+    - **Business Logic**: Contains the core business functionality for shortening URLs and retrieving original URLs.
+      This layer leverages the repository layer to fetch and store data.
 
 - **Repository**:
     - **Data Access**: Handles all data-related operations. This layer abstracts the data storage details, providing a
@@ -80,21 +89,30 @@ To run the application locally, follow these steps:
 
 1. **Clone the Repository**:
 
-> git clone <repository-url> && cd your-repo
+  ```bash
+  git clone <repository-url>
+  cd <repository-name>
+  ```
 
 2. **Build the Project**: Make sure you have Gradle installed, then run:
 
-> ./gradlew build
+  ```bash
+  ./gradlew build
+  ```
 
 3. **Run the Application**: Use the command
 
-> ./gradlew run
+  ```bash
+  ./gradlew run
+  ```
 
 4. **Access the Application**:
    Once the application is running, you can access it through your web browser or API client (like Postman) at the
    following URL:
 
-> http://localhost:8080
+  ```bash
+  http://localhost:8080
+  ```
 
 5. **Test the Endpoints**: Use Postman or Curl to test the API endpoints.
 
@@ -122,9 +140,11 @@ Testing is a critical part of the development process in this project.
 
 ### Run tests
 
-* There are 2 ways to run the tests
+There are 2 ways to run the tests
 
-    1. **Directly from IntelliJ** by clicking the play button next to each test
-    2. Use Gradle `test` task
-
-> ./gradlew clean test
+1. **Directly from IntelliJ** by clicking the play button next to each test
+2. Use **Gradle** `test` task
+  
+```bash
+./gradlew build
+```
