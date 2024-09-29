@@ -1,0 +1,57 @@
+# IntelliJ IDEA specific files
+/.idea/
+/*.iml
+/modules.xml
+/*.ipr
+/*.iws
+/workspace.xml
+
+# Ignore MacOS system files
+.DS_Store
+
+# Ignore Windows system files
+Thumbs.db
+ehthumbs.db
+
+# Logs
+*.log
+
+# Gradle files
+/.gradle/
+/build/
+/out/
+.gradle/
+build/
+out/
+
+# Temporary files
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Compiled bytecode
+*.class
+*.war
+*.ear
+*.jar
+
+# Other generated files
+*.min.js
+*.min.css
+*.map
+
+# Exclude coverage and test result files (from tools like Jacoco, etc.)
+/coverage/
+/test-results/
+
+# Exclude user-specific files
+*.user
+*.userprefs
+
+# Exclude environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
