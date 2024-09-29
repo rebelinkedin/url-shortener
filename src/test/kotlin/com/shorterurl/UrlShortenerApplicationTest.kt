@@ -20,7 +20,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class UrlShortenerApplicationTest {
-    private val baseUrl = "https://shorturl.com/"
+    private val baseUrl = "https://shorterurl.com/"
     private val longUrl = "https://example.com/this/is/a/very/very/very/very/long/url"
     private val gson = Gson()
 
@@ -286,20 +286,27 @@ class UrlShortenerApplicationTest {
     }
 
     @Test
+    fun testGetOriginalUrlByInvalidShortUrl() = testApplication {
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        client.get("/api/v1/urls/invalid-url").apply {
+            assertEquals(HttpStatusCode.BadRequest, status, "Invalid short URL format.")
+        }
+    }
+
+    @Test
     fun testGetOriginalUrlByNonExistingShortUrl() = testApplication {
         val client = createClient {
             install(ContentNegotiation) {
                 json()
             }
         }
-        client.post("/api/v1/urls/shorten") {
-            header(HttpHeaders.ContentType, Json)
-            setBody(ShortenUrlRequestDto(longUrl, null))
-        }.apply {
-            assertEquals(HttpStatusCode.Created, status)
-        }
 
-        client.get("/api/v1/urls/non-existing-url").apply {
+        client.get("/api/v1/urls/unknown").apply {
             assertEquals(HttpStatusCode.NotFound, status, "URL not found")
         }
     }

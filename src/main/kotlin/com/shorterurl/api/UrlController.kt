@@ -2,8 +2,11 @@ package com.shorterurl.api
 
 import com.shorterurl.model.AlreadyExistsException
 import com.shorterurl.model.InvalidFormatException
+import com.shorterurl.model.Url
 import com.shorterurl.service.UrlService
-import com.shorterurl.utility.UrlValidator
+import com.shorterurl.utility.isValid
+import com.shorterurl.utility.isValidShortUrl
+import com.shorterurl.utility.transform
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Conflict
@@ -40,14 +43,13 @@ class UrlController(
     private fun postShortenUrl(route: Route) {
         route.post("$BASE_PATH/shorten") {
             val request = call.receive<ShortenUrlRequestDto>()
-            val isValidUrl = UrlValidator.checkLongUrl(request.longUrl)
-            if (isValidUrl.not()) {
+            if (Url(request.longUrl).isValid().not()) {
                 return@post call.respond(BadRequest, "Invalid URL format.")
             }
 
             try {
                 val shortUrl = urlService.createShortUrl(request)
-                call.respond(Created, ShortenUrlResponseDto("$BASE_URL${shortUrl.value}"))
+                call.respond(Created, ShortenUrlResponseDto(shortUrl.transform().value))
             } catch (exception: Exception) {
                 when (exception) {
                     is InvalidFormatException -> call.respond(BadRequest, exception.message.toString())
@@ -63,6 +65,10 @@ class UrlController(
             val shortUrl = call.parameters["shortUrl"]
                 ?: return@get call.respond(BadRequest, "Short URL parameter is missing.")
 
+            if (Url(shortUrl).isValidShortUrl().not()) {
+                return@get call.respond(BadRequest, "Invalid short URL format.")
+            }
+
             val originalUrl = urlService.getOriginalUrl(shortUrl)
                 ?: return@get call.respond(HttpStatusCode.NotFound, "URL not found.")
 
@@ -72,6 +78,5 @@ class UrlController(
 
     companion object {
         const val BASE_PATH = "/api/v1/urls"
-        const val BASE_URL = "https://shorturl.com/"
     }
 }
